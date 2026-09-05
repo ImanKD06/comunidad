@@ -1,46 +1,58 @@
+from contextlib import asynccontextmanager
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 
 from app.database.base import Base
 from app.database.connection import engine
 
-from app.models.community import Community
-from app.models.neighbor import Neighbor
-from app.models.payment import Payment
-from app.models.expense import Expense
-from app.models.actas import Actas
-from app.models.incident import Incident
-from app.routers import ai
+# Routers
+from app.routers.actas import router as actas_router
+from app.routers.communities import router as communities_router
+from app.routers.expenses import router as expenses_router
+from app.routers.incidents import router as incidents_router
+from app.routers.neighbors import router as neighbors_router
+from app.routers.payments import router as payments_router
 
-from app.routers import (
-    communities,
-    neighbors,
-    payments,
-    expenses,
-    actas,
-    incidents,
+load_dotenv()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+
+
+app = FastAPI(
+    title="Community Manager API",
+    version="1.0.0",
+    redirect_slashes=False,
+    lifespan=lifespan,
 )
 
-app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-Base.metadata.create_all(bind=engine)
 
-app.include_router(communities.router)
-app.include_router(neighbors.router)
-app.include_router(payments.router)
-app.include_router(expenses.router)
-app.include_router(actas.router)
-app.include_router(incidents.router)
-app.include_router(ai.router)
+@app.middleware("http")
+async def log_requests(request, call_next):
+    print(f"INCOMING PATH: {request.url.path!r}")
+    response = await call_next(request)
+    print(f"RESPONSE STATUS: {response.status_code}")
+    return response
+
+
+# Registramos los routers
+app.include_router(communities_router)
+app.include_router(neighbors_router)
+app.include_router(payments_router)
+app.include_router(expenses_router)
+app.include_router(incidents_router)
+app.include_router(actas_router)
+
 
 @app.get("/")
 def root():
-    return {"message": "API funcionando"}
+    return {"message": "Community Manager API running"}
+
+
+handler = Mangum(app)

@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.database.connection import SessionLocal
-
 from app.models.incident import Incident
 from app.schemas.incident import IncidentCreate, IncidentUpdate
+from app.services.ai_service import analizar_incidencia
 
-router = APIRouter(prefix="/incidents", tags=["Incidents"])
+router = APIRouter(prefix="/incidents", tags=["incidents"])
+
+
+class AnalyzeSchema(BaseModel):
+    description: str
 
 
 def get_db():
@@ -17,9 +22,37 @@ def get_db():
         db.close()
 
 
-@router.get("/")
+@router.post("/analizar")
+def endpoint_analizar(payload: AnalyzeSchema):
+    resultado = analizar_incidencia(payload.description)
+    return {"analisis": resultado}
+
+
+@router.get("")
 def get_incidents(db: Session = Depends(get_db)):
     return db.query(Incident).all()
+
+
+@router.post("")
+def create_incident(
+    incident: IncidentCreate,
+    db: Session = Depends(get_db)
+):
+    new_incident = Incident(
+        title=incident.title,
+        description=incident.description,
+        status=incident.status,
+        priority=incident.priority,
+        created_at=incident.created_at,
+        community_id=incident.community_id
+    )
+
+    db.add(new_incident)
+    db.commit()
+    db.refresh(new_incident)
+
+    return new_incident
+
 
 @router.get("/{incident_id}")
 def get_incident(
@@ -39,26 +72,6 @@ def get_incident(
         )
 
     return incident
-
-@router.post("/")
-def create_incident(
-    incident: IncidentCreate,
-    db: Session = Depends(get_db)
-):
-    new_incident = Incident(
-        title=incident.title,
-        description=incident.description,
-        status=incident.status,
-        priority=incident.priority,
-        created_at=incident.created_at,
-        community_id=incident.community_id
-    )
-
-    db.add(new_incident)
-    db.commit()
-    db.refresh(new_incident)
-
-    return new_incident
 
 
 @router.put("/{incident_id}")
@@ -91,6 +104,7 @@ def update_incident(
 
     return incident
 
+
 @router.delete("/{incident_id}")
 def delete_incident(
     incident_id: int,
@@ -112,6 +126,3 @@ def delete_incident(
     db.commit()
 
     return {"message": "Deleted"}
-
-
-

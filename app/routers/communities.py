@@ -18,13 +18,13 @@ def get_db():
         db.close()
 
 
-@router.get("/")
+@router.get("")
 def get_communities(db: Session = Depends(get_db)):
     return db.query(Community).all()
 
 
 
-@router.post("/")
+@router.post("")
 def create_community(
     community: CommunityCreate, 
     db: Session = Depends(get_db)

@@ -15,13 +15,13 @@ def get_db():
         db.close()
 
 
-@router.get("/")
+@router.get("")
 def get_expenses(db: Session = Depends(get_db)):
     return db.query(Expense).all()
 
 
 
-@router.post("/")
+@router.post("")
 def create_expense(expense: ExpenseCreate, db: Session = Depends(get_db)):
     new_expense = Expense(
       

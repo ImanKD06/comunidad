@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.example
+
+__pycache__/
+*.pyc
+
+.aws-sam/
+package_linux/
+
+.venv/
+venv/
+
+node_modules/
+dist/
+
+.vscode/

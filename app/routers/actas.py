@@ -3,9 +3,11 @@ from sqlalchemy.orm import Session
 from app.database.connection import SessionLocal
 from app.models.actas import Actas
 from app.schemas.actas import ActasCreate, ActasUpdate
+from app.services.ai_service import redactar_acta
 
 
 router = APIRouter(prefix="/actas", tags=["Actas"])
+
 
 def get_db():
     db = SessionLocal()
@@ -15,9 +17,27 @@ def get_db():
         db.close()
 
 
-@router.get("/")
+@router.post("/generate")
+def generate_acta(data: ActasCreate):
+    content = redactar_acta(
+        title=data.title,
+        date=getattr(data, "meeting_date", getattr(data, "date", "")),
+        attendees=data.attendees,
+        topics=data.topics,
+        agreements=data.agreements,
+        community_name=getattr(data, "community_name", "")
+    )
+
+    return {
+        "content": content,
+        "contenido": content
+    }
+
+
+@router.get("")
 def get_actas(db: Session = Depends(get_db)):
     return db.query(Actas).all()
+
 
 @router.get("/{acta_id}")
 def get_acta(acta_id: int, db: Session = Depends(get_db)):
@@ -31,7 +51,8 @@ def get_acta(acta_id: int, db: Session = Depends(get_db)):
 
     return acta
 
-@router.post("/")
+
+@router.post("")
 def create_actas(data: ActasCreate, db: Session = Depends(get_db)):
     new_acta = Actas(
         title=data.title,
@@ -49,24 +70,6 @@ def create_actas(data: ActasCreate, db: Session = Depends(get_db)):
 
     return new_acta
 
-@router.post("/generate")
-def generate_acta(data: ActasCreate):
-    content = f"""
-ACTA DE REUNIÓN
-
-Título: {data.title}
-
-Asistentes:
-{data.attendees}
-
-Temas tratados:
-{data.topics}
-
-Acuerdos:
-{data.agreements}
-"""
-
-    return {"content": content}
 
 @router.put("/{acta_id}")
 def update_acta(
@@ -107,7 +110,3 @@ def delete_acta(acta_id: int, db: Session = Depends(get_db)):
     db.commit()
 
     return {"message": "Deleted"}
-
-
-
-

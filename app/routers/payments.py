@@ -15,11 +15,11 @@ def get_db():
     finally:
         db.close()
 
-@router.get("/")
+@router.get("")
 def get_payments(db: Session = Depends(get_db)):
     return db.query(Payment).all()
 
-@router.post("/")
+@router.post("")
 def create_payment(
     payment: PaymentCreate,
     db: Session = Depends(get_db)

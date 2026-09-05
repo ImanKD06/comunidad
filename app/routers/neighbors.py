@@ -20,12 +20,12 @@ def get_db():
         db.close()
 
 
-@router.get("/")
+@router.get("")
 def get_neighbors(db: Session = Depends(get_db)):
     return db.query(Neighbor).all()
 
 
-@router.post("/")
+@router.post("")
 def create_neighbor(
     neighbor: NeighborCreate,
     db: Session = Depends(get_db)
