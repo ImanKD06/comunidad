@@ -8,7 +8,7 @@ Community Manager nace de una idea sencilla: ¿por qué la gestión de una comun
 
 La plataforma centraliza en un único lugar la información relacionada con comunidades, vecinos, pagos, gastos, incidencias y reuniones, incorporando herramientas de Inteligencia Artificial para automatizar determinadas tareas.
 
-## ✨ Funcionalidades
+##  Funcionalidades
 
 -  Gestión de comunidades
 -  Gestión de vecinos
